@@ -1,27 +1,21 @@
 package com.example.moona.eventapp;
 
-import android.app.ProgressDialog;
-import android.support.v7.app.AppCompatActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,70 +31,77 @@ public class MainActivity extends AppCompatActivity {
 
         //lv = (ListView) findViewById(R.id.lv);
         debug = (TextView) findViewById(R.id.debug);
+
     }
 
-    public void VolleyClicked(View v)
+    public void SearchClicked(View v)
     {
-        String url = "http://webd.savonia.fi/home/ktkoiju/j2me/test_json.php?dates";
-        volleyStringRequest(url);
+        String url = "http://api.hel.fi/linkedevents/v0.1/event/?end=2014-01-20&format=json&start=2014-01-15";
+        new MyTask().execute(url);
     }
 
-    public void volleyStringRequest(String url){
+    private class MyTask extends AsyncTask<String, Integer, JSONObject> {
 
-        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        // Runs in UI before background thread is called
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
 
-        progressDialog.setMessage("Loading...");
-        progressDialog.show();
-        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+            // Do something like display a progress bar
+        }
+
+        // This is run in a background thread
+        @Override
+        protected JSONObject doInBackground(String... params) {
+            // get the string from params, which is an array
+            // First try to retrieve the url
+            JSONObject result = null;  //initializing the result we'll return
+            try{
+                URL url = new URL(params[0]);
+                HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
 
 
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-
-                Toast.makeText(getApplicationContext(), "Tulin tähän", Toast.LENGTH_SHORT);
-                //ArrayList<Data> dataList = new ArrayList<>();
-                debug.setText(response.toString());
-
-
-                /*try
+                int responseCode = urlConnection.getResponseCode();
+                if(responseCode == HttpURLConnection.HTTP_OK)
                 {
-                    for(int i = 0; i < response.length(); i++)
-                    {
-                        JSONObject data = null;
 
-                        data = response.getJSONObject(i);
+                    InputStream is = urlConnection.getInputStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                    StringBuilder sb = new StringBuilder();
+                    String currentLine = "";
 
-                        String date = data.getString("data");
-                        //String name = data.getString("nimi");
+                    while((currentLine = br.readLine()) != null){
 
-                        debug.setText(date);
-                        //dataList.add(new Data(name, date));
+                        sb.append(currentLine);
                     }
+
+                    result = new JSONObject(sb.toString());
+
                 }
-                catch (JSONException e)
-                {
-                    e.printStackTrace();
-                }*/
 
-                //dataAdapter = new DataAdapter(MainActivity.this, dataList);
-                //lv.setAdapter(dataAdapter);
-
-                progressDialog.dismiss();
-
+            }catch (Exception e){
+                e.printStackTrace();
             }
-        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error){
+            return result;
 
-                        Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_SHORT);
-                    }
-           }
+        }
 
-        );
+        // This is called from background thread but runs in UI
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
 
-        requestQueue.add(jsonArrayRequest);
+            // Do things like update the progress bar
+        }
 
+        // This runs in UI when background thread finishes
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
 
+            debug.setText(result.toString());
+            // Do things like hide the progress bar or change a TextView
+        }
     }
+
 }
