@@ -1,5 +1,6 @@
 package com.example.moona.eventapp;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,35 +24,38 @@ public class MainActivity extends AppCompatActivity {
     private ListView lv;
     private DataAdapter dataAdapter;
     private TextView debug;
-
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //lv = (ListView) findViewById(R.id.lv);
+        lv = (ListView) findViewById(R.id.lv);
         debug = (TextView) findViewById(R.id.debug);
+
 
     }
 
     public void SearchClicked(View v)
     {
-        String url = "http://api.hel.fi/linkedevents/v0.1/event/?end=2014-01-20&format=json&start=2014-01-15";
+        String url = "https://api.hel.fi/linkedevents/v1/search/?format=json&q=helsinki&type=event";
         new MyTask().execute(url);
     }
 
     private class MyTask extends AsyncTask<String, Integer, JSONObject> {
 
-        // Runs in UI before background thread is called
+        // TEHDÄÄN ENNEN PYYNTÖÄ
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // Do something like display a progress bar
+            progressDialog= new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Loading...");
+            progressDialog.show();
         }
 
-        // This is run in a background thread
+        // PYÖRII TAUSTALLA
         @Override
         protected JSONObject doInBackground(String... params) {
             // get the string from params, which is an array
@@ -94,13 +99,67 @@ public class MainActivity extends AppCompatActivity {
             // Do things like update the progress bar
         }
 
-        // This runs in UI when background thread finishes
+        // TÄMÄ ALKAA, KUNNES BACKGROUND-PROSESSIT LOPPUU
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
+            progressDialog.dismiss();
 
-            debug.setText(result.toString());
-            // Do things like hide the progress bar or change a TextView
+            JSONObject obj = null;
+            JSONArray array = null;
+
+            try
+            {
+                obj = new JSONObject(String.valueOf(result));
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+
+            try
+            {
+                array = obj.getJSONArray("data");
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+
+            ArrayList<Data> dataList = new ArrayList<>();
+
+            for (int i = 0; i < array.length(); i++)
+            {
+
+                try
+                {
+
+                    JSONObject data = null;
+
+                    data = array.getJSONObject(i);
+
+
+                    JSONObject name = data.getJSONObject("name");
+                    JSONObject desc = data.getJSONObject("short_description");
+
+                    String en_name = name.getString("en");
+                    String en_desc = desc.getString("en");
+
+                    dataList.add(new Data(en_name, en_desc));
+
+
+                    debug.setText(name + " " + desc);
+
+                }
+                catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+
+            }
+
+            dataAdapter = new DataAdapter(MainActivity.this, dataList);
+            lv.setAdapter(dataAdapter);
         }
     }
 
