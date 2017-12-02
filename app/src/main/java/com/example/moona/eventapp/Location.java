@@ -4,19 +4,19 @@ package com.example.moona.eventapp;
  * Created by moona on 28.11.2017.
  */
 
-public class Keyword {
+public class Location {
 
-    private String mName;
+    private String mLocation;
     private String mId;
 
-    public Keyword(String mName, String mId)
+    public Location(String mName, String mId)
     {
-        this.mName = mName;
+        this.mLocation = mName;
         this.mId = mId;
     }
 
-    public String getmName() {
-        return mName;
+    public String getmLocation() {
+        return mLocation;
     }
 
     public String getmId() {

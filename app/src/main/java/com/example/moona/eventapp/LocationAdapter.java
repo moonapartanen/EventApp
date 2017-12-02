@@ -16,15 +16,15 @@ import java.util.List;
  * Created by moona on 28.11.2017.
  */
 
-public class KeywordAdapter extends ArrayAdapter<Keyword> {
+public class LocationAdapter extends ArrayAdapter<Location> {
 
     private final LayoutInflater mInflater;
     private final Context mContext;
-    private final List<Keyword> items;
+    private final List<Location> items;
     private final int mResource;
 
-    public KeywordAdapter(@NonNull Context context, @LayoutRes int resource,
-                          @NonNull List<Keyword> objects) {
+    public LocationAdapter(@NonNull Context context, @LayoutRes int resource,
+                           @NonNull List<Location> objects) {
         super(context, resource, 0, objects);
 
         mContext = context;
@@ -46,13 +46,13 @@ public class KeywordAdapter extends ArrayAdapter<Keyword> {
     private View createItemView(int position, View convertView, ViewGroup parent){
         final View view = mInflater.inflate(mResource, parent, false);
 
-        TextView txtKeyword = (TextView) view.findViewById(R.id.txtLocation);
-        TextView txtKeywordId = (TextView) view.findViewById(R.id.txtKeywordId);
+        TextView txtLocation = (TextView) view.findViewById(R.id.txtLocation);
+        TextView txtLocationId = (TextView) view.findViewById(R.id.txtLocationId);
 
-        Keyword k = items.get(position);
+        Location l = items.get(position);
 
-        txtKeyword.setText(k.getmName());
-        txtKeywordId.setText(k.getmId());
+        txtLocation.setText(l.getmLocation());
+        txtLocationId.setText(l.getmId());
 
         return view;
     }

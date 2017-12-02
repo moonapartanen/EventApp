@@ -1,13 +1,11 @@
 package com.example.moona.eventapp;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -28,28 +26,32 @@ public class MainActivity extends AppCompatActivity {
     private ListView lv;
     private DataAdapter dataAdapter;
     private KeywordAdapter keywordAdapter;
+    private LocationAdapter locationAdapter;
     private ProgressDialog progressDialog;
-    private String locationUrl = "https://api.hel.fi/linkedevents/v1/place/?format=json&show_all_places=false&sort=name";
+    private String locationUrl = "https://api.hel.fi/linkedevents/v1/place/?format=json";
     private String keyWordUrl = "http://api.hel.fi/linkedevents/v0.1/keyword/?format=json";
-    private String searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=";
+    private String searchUrl = "";
     private static String status = "";
     private Spinner keywordSpinner;
+    private Spinner locationSpinner;
     private static String keyword = "";
+    private static String location = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        lv = (ListView) findViewById(R.id.lv);
+        lv = findViewById(R.id.lv);
 
         new MyTask().execute(keyWordUrl, "keywords");
     }
 
     public void SearchClicked(View v)
     {
-        searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&keyword=" + keyword;
-        Toast.makeText(MainActivity.this, searchUrl, Toast.LENGTH_LONG).show();
+        searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=location,keyword&location=" + location + "&keyword=" + keyword;
+        Toast.makeText(MainActivity.this,
+                searchUrl, Toast.LENGTH_LONG).show();
         new MyTask().execute(searchUrl, "search");
     }
 
@@ -142,7 +144,8 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject desc = data.getJSONObject("short_description");
                         String en_name = name.getString("en");
                         String en_desc = desc.getString("en");
-                        dataList.add(new Data(en_name, en_desc));
+                        String date = data.getString("start_time");
+                        dataList.add(new Data(en_name, FormatDates(date), en_desc));
                     }
                     catch (JSONException e)
                     {
@@ -168,7 +171,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                ArrayList<String> locations = new ArrayList<>();
+                ArrayList<Location> locations = new ArrayList<>();
+                locations.add(new Location("Choose location", ""));
 
                 for (int i = 0; i < array.length(); i++)
                 {
@@ -176,13 +180,12 @@ public class MainActivity extends AppCompatActivity {
                     {
                         JSONObject data = null;
                         data = array.getJSONObject(i);
-                        JSONObject desc = data.getJSONObject("address_locality");
-                        String en_desc = desc.getString("en");
+                        String locationId = data.getString("id");
+                        JSONObject location = data.getJSONObject("name");
+                        String en_location = location.getString("en");
 
-                        if (!locations.contains(en_desc))
-                        {
-                            locations.add(en_desc);
-                        }
+                        locations.add(new Location(en_location, locationId));
+
 
                     }
                     catch (JSONException e)
@@ -192,14 +195,20 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
-                Spinner locationSpinner = (Spinner) findViewById(R.id.locationSpinner);
+                locationSpinner = findViewById(R.id.locationSpinner);
+                locationAdapter = new LocationAdapter(MainActivity.this, R.layout.location_spinner, locations);
+                locationSpinner.setAdapter(locationAdapter);
+                locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+                    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                        location = ((TextView)view.findViewById(R.id.txtLocationId)).getText().toString();
+                        searchUrl = "";
+                    }
 
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
 
-
-                locationSpinner.setAdapter(new ArrayAdapter<String>(MainActivity.this,
-                                android.R.layout.simple_spinner_dropdown_item,
-                                locations));
-
+                    }
+                });
             }
 
             if (status == "keywords")
@@ -218,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 ArrayList<Keyword> keywords = new ArrayList<>();
+                keywords.add(new Keyword("Choose keyword", ""));
 
                 for (int i = 0; i < array.length(); i++)
                 {
@@ -243,11 +253,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 keywordSpinner = findViewById(R.id.keywordSpinner);
-                keywordAdapter = new KeywordAdapter(MainActivity.this, R.layout.spinner_item, keywords);
+                keywordAdapter = new KeywordAdapter(MainActivity.this, R.layout.keyword_spinner, keywords);
                 keywordSpinner.setAdapter(keywordAdapter);
                 keywordSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                        keyword = ((TextView)view.findViewById(R.id.max_discount_txt)).getText().toString();
+                        keyword = ((TextView)view.findViewById(R.id.txtKeywordId)).getText().toString();
                         searchUrl = "";
                     }
 
@@ -256,13 +266,17 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
-                    //keywordSpinner.setSelection(keywordAdapter.getPosition(myItem));
 
-                //new MyTask().execute(locationUrl, "locations");
+                new MyTask().execute(locationUrl, "locations");
 
             }
 
         }
+    }
+
+    public String FormatDates(String date)
+    {
+        return date.substring(0, 10);
     }
 
 }
