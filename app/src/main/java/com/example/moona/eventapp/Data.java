@@ -7,24 +7,32 @@ package com.example.moona.eventapp;
 public class Data {
 
     private String mName;
-    private String mDate;
+    private String mDateAndLocation;
     private String mDescription;
     private String mImageUrl;
+    private String mPhotographer;
+    private String mUrl;
+    private String mFullDescription;
+    private String mEventId;
 
-    public Data(String mName, String mDate, String mDescription, String mImageUrl)
+    public Data(String mName, String mDateAndLocation, String mDescription, String mImageUrl, String mEventId, String mPhotographer, String mUrl, String mFullDescription)
     {
         this.mName = mName;
-        this.mDate = mDate;
+        this.mDateAndLocation = mDateAndLocation;
         this.mDescription = mDescription;
         this.mImageUrl = mImageUrl;
+        this.mEventId = mEventId;
+        this.mPhotographer = mPhotographer;
+        this.mUrl = mUrl;
+        this.mFullDescription = mFullDescription;
     }
 
     public String getmName() {
         return mName;
     }
 
-    public String getmDate() {
-        return mDate;
+    public String getmDateAndLocation() {
+        return mDateAndLocation;
     }
 
     public String getmDescription() {
@@ -33,5 +41,21 @@ public class Data {
 
     public String getmImageUrl() {
         return mImageUrl;
+    }
+
+    public String getmEventId() {
+        return mEventId;
+    }
+
+    public String getmPhotographer() {
+        return mPhotographer;
+    }
+
+    public String getmUrl() {
+        return mUrl;
+    }
+
+    public String getmFullDescription() {
+        return mFullDescription;
     }
 }

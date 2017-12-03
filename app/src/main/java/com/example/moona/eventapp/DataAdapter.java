@@ -40,7 +40,7 @@ public class DataAdapter extends ArrayAdapter<Data> {
         name.setText(currentData.getmName());
 
         TextView date = listItem.findViewById(R.id.txtDate);
-        date.setText(currentData.getmDate());
+        date.setText(currentData.getmDateAndLocation());
 
         TextView description = listItem.findViewById(R.id.txtDescription);
         description.setText(currentData.getmDescription());

@@ -1,15 +1,16 @@
 package com.example.moona.eventapp;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,12 +31,13 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private String locationUrl = "https://api.hel.fi/linkedevents/v1/place/?format=json";
     private String keyWordUrl = "http://api.hel.fi/linkedevents/v0.1/keyword/?format=json";
-    private String searchUrl = "";
+    private String searchUrl;
     private static String status = "";
     private Spinner keywordSpinner;
     private Spinner locationSpinner;
     private static String keyword = "";
     private static String location = "";
+    private String idForSpecialInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         lv = findViewById(R.id.lv);
+
+
 
         new MyTask().execute(keyWordUrl, "keywords");
     }
@@ -131,7 +135,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                ArrayList<Data> dataList = new ArrayList<>();
+                final ArrayList<Data> dataList = new ArrayList<>();
+
 
                 for (int i = 0; i < array.length(); i++)
                 {
@@ -145,11 +150,19 @@ public class MainActivity extends AppCompatActivity {
                         data = array.getJSONObject(i);
                         JSONObject name = data.getJSONObject("name");
                         JSONObject desc = data.getJSONObject("short_description");
+                        JSONObject fullDesc = data.getJSONObject("description");
+                        JSONObject locationInfo = data.getJSONObject("location_extra_info");
+                        JSONObject url = data.getJSONObject("info_url");
                         String en_name = name.getString("en");
                         String en_desc = desc.getString("en");
+                        String en_fullDesc = fullDesc.getString("en");
+                        String en_url = url.getString("en");
                         String date = data.getString("start_time");
+                        String en_locationInfo = locationInfo.getString("en");
 
                         JSONArray images = data.getJSONArray("images");
+
+                        String eventId = data.getString("id");
 
                         // JSONIN SISÄLLÄ TAULUKKO, JOTEN PITÄÄ PYÖRITTÄÄ SILMUKASSA
                         if (images != null)
@@ -161,18 +174,12 @@ public class MainActivity extends AppCompatActivity {
                                 if (imageData != null)
                                 {
                                     imageUrl = imageData.getString("url");
- //                                   imageSource = imageData.getString("data_source");
- //                                   photographer = imageData.getString("photographer");
+                                    photographer = imageData.getString("photographer_name");
                                 }
                             }
                         }
 
-                        //String imageUrl = imageData.getString("url");
-                        //String photographer = images.getString("photographer_name");
-                        //String imageDataSource = images.getString("data_source");
-                        //Toast.makeText(MainActivity.this,
-                        //        imageUrl, Toast.LENGTH_LONG).show();
-                        dataList.add(new Data(en_name, FormatDates(date), en_desc, imageUrl));
+                        dataList.add(new Data(en_name, FormatDates(date) + ", " + en_locationInfo, en_desc, imageUrl, eventId, photographer, en_url, en_fullDesc));
                     }
                     catch (JSONException e)
                     {
@@ -181,6 +188,41 @@ public class MainActivity extends AppCompatActivity {
                 }
                 dataAdapter = new DataAdapter(MainActivity.this, dataList);
                 lv.setAdapter(dataAdapter);
+
+                // KUN KÄYTTÄJÄ VALITSEE JONKUN TAPAHTUMAN, AVAUTUU DIALOG
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, final int index, long id) {
+
+                        final int selectedPosition = index;
+                        idForSpecialInfo = dataAdapter.getItem(index).getmEventId();
+
+                        LayoutInflater linf = LayoutInflater.from(MainActivity.this);
+                        final View inflator = linf.inflate(R.layout.dialog, null);
+
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
+                        builder.setView(inflator);
+
+                        TextView dialogTitle = inflator.findViewById(R.id.dialogTitle);
+                        dialogTitle.setText(dataAdapter.getItem(index).getmName());
+                        TextView dialogDateAndLocation = inflator.findViewById(R.id.dialogDateAndLocation);
+                        dialogDateAndLocation.setText(dataAdapter.getItem(index).getmDateAndLocation());
+                        TextView dialogDescription = inflator.findViewById(R.id.dialogDescription);
+                        dialogDescription.setText(dataAdapter.getItem(index).getmFullDescription());
+                        TextView dialogPhotoInfo = inflator.findViewById(R.id.dialogPhotoInfo);
+                        dialogPhotoInfo.setText(dataAdapter.getItem(index).getmPhotographer());
+                        TextView dialogInfoUrl = inflator.findViewById(R.id.dialogUrl);
+                        dialogInfoUrl.setText(dataAdapter.getItem(index).getmUrl());
+
+                        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue with delete
+                                    }
+                                })
+                                .show();
+                    }
+                });
             }
 
             if (status == "locations")

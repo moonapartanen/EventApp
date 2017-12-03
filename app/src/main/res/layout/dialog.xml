@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="20sp">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/lblDescription"
+        android:textStyle="bold"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblDateAndLocation"
+        android:layout_marginTop="43dp"
+        android:text="What is going to happen?" />
+
+    <TextView
+        android:id="@+id/lblDateAndLocation"
+        android:textStyle="bold"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/dialogTitle"
+        android:layout_marginTop="15dp"
+        android:text="When and where?" />
+
+    <TextView
+        android:id="@+id/dialogDateAndLocation"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblDateAndLocation" />
+
+    <TextView
+        android:id="@+id/dialogDescription"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblDescription" />
+
+    <TextView
+        android:id="@+id/lblPhotoInfo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/dialogUrl"
+        android:layout_marginTop="17dp"
+        android:text="Photographer of event's picture"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogUrl"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblUrl" />
+
+    <TextView
+        android:id="@+id/lblUrl"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/dialogDescription"
+        android:layout_marginTop="20dp"
+        android:text="Where could I find extra information?"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogPhotoInfo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblPhotoInfo" />
+
+</RelativeLayout>
