@@ -7,20 +7,20 @@ package com.example.moona.eventapp;
 public class Keyword {
 
     private String mName;
-    private String mId;
+    private String mKeywordId;
 
-    public Keyword(String mName, String mId)
+    public Keyword(String mName, String mKeywordId)
     {
         this.mName = mName;
-        this.mId = mId;
+        this.mKeywordId = mKeywordId;
     }
 
     public String getmName() {
         return mName;
     }
 
-    public String getmId() {
-        return mId;
+    public String getmKeywordId() {
+        return mKeywordId;
     }
 
 }

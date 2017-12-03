@@ -11,7 +11,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private Spinner locationSpinner;
     private static String keyword = "";
     private static String location = "";
-    private String idForSpecialInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +44,16 @@ public class MainActivity extends AppCompatActivity {
 
         lv = findViewById(R.id.lv);
 
-
-
+        // HAETAAN SPINNERIIN HETI OHJELMAN ALKAESSA KEYWORDIT
         new MyTask().execute(keyWordUrl, "keywords");
     }
 
     public void SearchClicked(View v)
     {
         searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=location,keyword&location=" + location + "&keyword=" + keyword;
+
+        // HAKU HAKUTEKIJÖIDEN MUKAAN
+        // TODO: TÄHÄN TARKISTUS, ETTÄ AINAKIN JOTAKIN ON SYÖTETTY
         new MyTask().execute(searchUrl, "search");
     }
 
@@ -64,12 +64,12 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            progressDialog= new ProgressDialog(MainActivity.this);
+            progressDialog = new ProgressDialog(MainActivity.this);
             progressDialog.setMessage("Loading...");
             progressDialog.show();
         }
 
-        // PYÖRII TAUSTALLA
+        // PYÖRII TAUSTALLA, HAKEE JSONIA
         @Override
         protected JSONObject doInBackground(String... params) {
 
@@ -102,10 +102,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return result;
-
         }
 
-        // This is called from background thread but runs in UI
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
@@ -113,39 +111,38 @@ public class MainActivity extends AppCompatActivity {
             // Do things like update the progress bar
         }
 
-        // TÄMÄ ALKAA, KUNNES BACKGROUND-PROSESSIT LOPPUU
+        // TÄMÄ ALKAA, KUNNES BACKGROUND-PROSESSIT LOPPUU, JSONIN PARSINTA
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
 
             progressDialog.dismiss();
 
+            JSONObject obj = null;
+            JSONArray array = null;
+
+            try
+            {
+                obj = new JSONObject(String.valueOf(result));
+                array = obj.getJSONArray("data");
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+
             if (status == "search")
             {
-                JSONObject obj = null;
-                JSONArray array = null;
-
-                try
-                {
-                    obj = new JSONObject(String.valueOf(result));
-                    array = obj.getJSONArray("data");
-                }
-                catch (JSONException e)
-                {
-                    e.printStackTrace();
-                }
-
                 final ArrayList<Data> dataList = new ArrayList<>();
-
 
                 for (int i = 0; i < array.length(); i++)
                 {
                     String imageUrl = "";
-                    String imageSource = "";
                     String photographer = "";
 
                     try
                     {
+                        // PARSITAAN DATAA OCJEKTEIHIN, JOISTA HAJOITETAAN ENGLANNINKIELISET STRING-MUUTTUJAT
                         JSONObject data = null;
                         data = array.getJSONObject(i);
                         JSONObject name = data.getJSONObject("name");
@@ -157,12 +154,10 @@ public class MainActivity extends AppCompatActivity {
                         String en_desc = desc.getString("en");
                         String en_fullDesc = fullDesc.getString("en");
                         String en_url = url.getString("en");
-                        String date = data.getString("start_time");
                         String en_locationInfo = locationInfo.getString("en");
-
-                        JSONArray images = data.getJSONArray("images");
-
                         String eventId = data.getString("id");
+                        String date = data.getString("start_time");
+                        JSONArray images = data.getJSONArray("images");
 
                         // JSONIN SISÄLLÄ TAULUKKO, JOTEN PITÄÄ PYÖRITTÄÄ SILMUKASSA
                         if (images != null)
@@ -196,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, final int index, long id) {
 
                         final int selectedPosition = index;
-                        idForSpecialInfo = dataAdapter.getItem(index).getmEventId();
 
                         LayoutInflater linf = LayoutInflater.from(MainActivity.this);
                         final View inflator = linf.inflate(R.layout.dialog, null);
@@ -204,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
                         builder.setView(inflator);
 
+                        // TYRKÄTÄÄN DATAA CUSTOM-DIALOGIIN
                         TextView dialogTitle = inflator.findViewById(R.id.dialogTitle);
                         dialogTitle.setText(dataAdapter.getItem(index).getmName());
                         TextView dialogDateAndLocation = inflator.findViewById(R.id.dialogDateAndLocation);
@@ -216,30 +211,16 @@ public class MainActivity extends AppCompatActivity {
                         dialogInfoUrl.setText(dataAdapter.getItem(index).getmUrl());
 
                         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // continue with delete
-                                    }
-                                })
-                                .show();
+                            public void onClick(DialogInterface dialog, int which) {
+                                // continue with delete
+                            }
+                        })
+                        .show();
                     }
                 });
             }
-
-            if (status == "locations")
+            else if (status == "locations")
             {
-                JSONObject obj = null;
-                JSONArray array = null;
-
-                try
-                {
-                    obj = new JSONObject(String.valueOf(result));
-                    array = obj.getJSONArray("data");
-                }
-                catch (JSONException e)
-                {
-                    e.printStackTrace();
-                }
-
                 ArrayList<Location> locations = new ArrayList<>();
                 locations.add(new Location("Choose location", ""));
 
@@ -254,8 +235,6 @@ public class MainActivity extends AppCompatActivity {
                         String en_location = location.getString("en");
 
                         locations.add(new Location(en_location, locationId));
-
-
                     }
                     catch (JSONException e)
                     {
@@ -269,32 +248,17 @@ public class MainActivity extends AppCompatActivity {
                 locationSpinner.setAdapter(locationAdapter);
                 locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                        location = ((TextView)view.findViewById(R.id.txtLocationId)).getText().toString();
+                        location = locationAdapter.getItem(pos).getmLocationId();
                         searchUrl = "";
                     }
-
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
-
+                        // TÄMÄ PITÄÄ OLLA, MUUTEN KAATUU
                     }
                 });
             }
-
-            if (status == "keywords")
+            else if (status == "keywords")
             {
-                JSONObject obj = null;
-                JSONArray array = null;
-
-                try
-                {
-                    obj = new JSONObject(String.valueOf(result));
-                    array = obj.getJSONArray("data");
-                }
-                catch (JSONException e)
-                {
-                    e.printStackTrace();
-                }
-
                 ArrayList<Keyword> keywords = new ArrayList<>();
                 keywords.add(new Keyword("Choose keyword", ""));
 
@@ -308,17 +272,12 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject keyword = data.getJSONObject("name");
                         String en_keyword = keyword.getString("en");
 
-                        if (!keywords.contains(en_keyword))
-                        {
-                            keywords.add(new Keyword(en_keyword, keywordId));
-                        }
-
+                        keywords.add(new Keyword(en_keyword, keywordId));
                     }
                     catch (JSONException e)
                     {
                         e.printStackTrace();
                     }
-
                 }
 
                 keywordSpinner = findViewById(R.id.keywordSpinner);
@@ -326,26 +285,24 @@ public class MainActivity extends AppCompatActivity {
                 keywordSpinner.setAdapter(keywordAdapter);
                 keywordSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                        keyword = ((TextView)view.findViewById(R.id.txtKeywordId)).getText().toString();
+                        keyword = keywordAdapter.getItem(pos).getmKeywordId();
                         searchUrl = "";
                     }
-
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
-
+                        // TÄMÄ PITÄÄ OLLA, MUUTEN KAATUU
                     }
                 });
 
+                // ALOITETAAN LOCATION-SPINNERIN TÄYTTÖ, KUNHAN EKA SPINNERI ON TÄYTETTY
                 new MyTask().execute(locationUrl, "locations");
-
             }
-
         }
     }
 
+    // FUNKTIO MUOTOILEE PÄIVÄMÄÄRÄT JÄRKEVIKSI
     public String FormatDates(String date)
     {
         return date.substring(0, 10);
     }
-
 }

@@ -46,13 +46,11 @@ public class KeywordAdapter extends ArrayAdapter<Keyword> {
     private View createItemView(int position, View convertView, ViewGroup parent){
         final View view = mInflater.inflate(mResource, parent, false);
 
-        TextView txtKeyword = (TextView) view.findViewById(R.id.txtLocation);
-        TextView txtKeywordId = (TextView) view.findViewById(R.id.txtKeywordId);
+        TextView txtKeyword = view.findViewById(R.id.txtKeyWord);
 
         Keyword k = items.get(position);
 
         txtKeyword.setText(k.getmName());
-        txtKeywordId.setText(k.getmId());
 
         return view;
     }

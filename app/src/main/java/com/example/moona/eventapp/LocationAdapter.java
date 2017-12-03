@@ -46,13 +46,11 @@ public class LocationAdapter extends ArrayAdapter<Location> {
     private View createItemView(int position, View convertView, ViewGroup parent){
         final View view = mInflater.inflate(mResource, parent, false);
 
-        TextView txtLocation = (TextView) view.findViewById(R.id.txtLocation);
-        TextView txtLocationId = (TextView) view.findViewById(R.id.txtLocationId);
+        TextView txtLocation = view.findViewById(R.id.txtLocation);
 
         Location l = items.get(position);
 
         txtLocation.setText(l.getmLocation());
-        txtLocationId.setText(l.getmId());
 
         return view;
     }
