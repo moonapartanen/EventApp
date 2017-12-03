@@ -9,12 +9,14 @@ public class Data {
     private String mName;
     private String mDate;
     private String mDescription;
+    private String mImageUrl;
 
-    public Data(String mName, String mDate, String mDescription)
+    public Data(String mName, String mDate, String mDescription, String mImageUrl)
     {
         this.mName = mName;
         this.mDate = mDate;
         this.mDescription = mDescription;
+        this.mImageUrl = mImageUrl;
     }
 
     public String getmName() {
@@ -29,4 +31,7 @@ public class Data {
         return mDescription;
     }
 
+    public String getmImageUrl() {
+        return mImageUrl;
+    }
 }

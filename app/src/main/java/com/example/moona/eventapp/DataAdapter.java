@@ -1,11 +1,15 @@
 package com.example.moona.eventapp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,9 @@ public class DataAdapter extends ArrayAdapter<Data> {
 
         TextView description = listItem.findViewById(R.id.txtDescription);
         description.setText(currentData.getmDescription());
+
+        ImageView image = listItem.findViewById(R.id.imageView);
+        Picasso.with(mContext).load(currentData.getmImageUrl()).into(image);
 
         return listItem;
     }

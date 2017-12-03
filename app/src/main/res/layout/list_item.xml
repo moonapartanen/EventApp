@@ -3,13 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.android.volley.toolbox.NetworkImageView
+    <ImageView
         android:id="@+id/imageView"
         android:layout_width="100dp"
-        android:layout_height="150dp"
+        android:layout_height="200dp"
         android:layout_alignBottom="@+id/txtDate"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:adjustViewBounds="true"
+        android:padding="5sp"
+        android:layout_marginTop="5sp"
+        android:scaleType="centerCrop" />
 
     <TextView
         android:id="@+id/txtName"

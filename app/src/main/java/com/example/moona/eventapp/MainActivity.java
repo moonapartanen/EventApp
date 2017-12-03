@@ -50,8 +50,6 @@ public class MainActivity extends AppCompatActivity {
     public void SearchClicked(View v)
     {
         searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=location,keyword&location=" + location + "&keyword=" + keyword;
-        Toast.makeText(MainActivity.this,
-                searchUrl, Toast.LENGTH_LONG).show();
         new MyTask().execute(searchUrl, "search");
     }
 
@@ -115,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
+
             progressDialog.dismiss();
 
             if (status == "search")
@@ -136,6 +135,10 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < array.length(); i++)
                 {
+                    String imageUrl = "";
+                    String imageSource = "";
+                    String photographer = "";
+
                     try
                     {
                         JSONObject data = null;
@@ -145,7 +148,31 @@ public class MainActivity extends AppCompatActivity {
                         String en_name = name.getString("en");
                         String en_desc = desc.getString("en");
                         String date = data.getString("start_time");
-                        dataList.add(new Data(en_name, FormatDates(date), en_desc));
+
+                        JSONArray images = data.getJSONArray("images");
+
+                        // JSONIN SISÄLLÄ TAULUKKO, JOTEN PITÄÄ PYÖRITTÄÄ SILMUKASSA
+                        if (images != null)
+                        {
+                            for (int j = 0; j < images.length(); j++)
+                            {
+                                JSONObject imageData = images.getJSONObject(j);
+
+                                if (imageData != null)
+                                {
+                                    imageUrl = imageData.getString("url");
+ //                                   imageSource = imageData.getString("data_source");
+ //                                   photographer = imageData.getString("photographer");
+                                }
+                            }
+                        }
+
+                        //String imageUrl = imageData.getString("url");
+                        //String photographer = images.getString("photographer_name");
+                        //String imageDataSource = images.getString("data_source");
+                        //Toast.makeText(MainActivity.this,
+                        //        imageUrl, Toast.LENGTH_LONG).show();
+                        dataList.add(new Data(en_name, FormatDates(date), en_desc, imageUrl));
                     }
                     catch (JSONException e)
                     {
