@@ -11,6 +11,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +38,15 @@ public class MainActivity extends AppCompatActivity {
     private Spinner locationSpinner;
     private static String keyword = "";
     private static String location = "";
+
+    /* TODO:
+    - KORJAA LOCATION-HAKU
+    - FUNKTIO, JOKA TARKASTAA LÖYTYYKÖ JSONISTA MOISTA, JOS EI NIIN VIIVA
+    - PUUTTUVILLE KUVILLE PAREMPI SYSTEEMI
+      */
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,15 +173,22 @@ public class MainActivity extends AppCompatActivity {
                         // JSONIN SISÄLLÄ TAULUKKO, JOTEN PITÄÄ PYÖRITTÄÄ SILMUKASSA
                         if (images != null)
                         {
+                            // TODO: KORJAA TÄMÄ VIRITYS
+                            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/No_image_available_600_x_200.svg/2000px-No_image_available_600_x_200.svg.png";
+                            photographer = "-";
+
                             for (int j = 0; j < images.length(); j++)
                             {
                                 JSONObject imageData = images.getJSONObject(j);
 
                                 if (imageData != null)
                                 {
+
                                     imageUrl = imageData.getString("url");
                                     photographer = imageData.getString("photographer_name");
                                 }
+
+
                             }
                         }
 
@@ -226,15 +244,51 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < array.length(); i++)
                 {
+                    String city = "";
+                    String neighborhood = "";
+                    String location_name = "";
+                    String type = "";
+
                     try
                     {
                         JSONObject data = null;
                         data = array.getJSONObject(i);
+                        JSONArray divisions = data.getJSONArray("divisions");
                         String locationId = data.getString("id");
-                        JSONObject location = data.getJSONObject("name");
-                        String en_location = location.getString("en");
 
-                        locations.add(new Location(en_location, locationId));
+                        if (divisions != null)
+                        {
+                            for (int j = 0; j < divisions.length(); j++)
+                            {
+                                JSONObject divisionData = divisions.getJSONObject(j);
+
+                                if (divisionData != null)
+                                {
+                                    type = divisionData.getString("type");
+
+                                    if (type.contains("neighborhood"))
+                                    {
+                                        //Toast.makeText(MainActivity.this, "toimii",
+                                        //        Toast.LENGTH_LONG).show();
+
+                                        JSONObject location = divisionData.getJSONObject("name");
+                                        neighborhood += location.getString("fi") + ", ";
+                                    }
+
+                                    if (type.contains("muni"))
+                                    {
+                                        JSONObject location = divisionData.getJSONObject("name");
+                                        city += location.getString("fi");
+                                    }
+
+                                }
+                            }
+                        }
+                        /*String locationId = data.getString("id");
+                        JSONObject location = data.getJSONObject("name");
+                        String en_location = location.getString("en");*/
+
+                        locations.add(new Location(neighborhood + city, locationId));
                     }
                     catch (JSONException e)
                     {
@@ -306,3 +360,4 @@ public class MainActivity extends AppCompatActivity {
         return date.substring(0, 10);
     }
 }
+
