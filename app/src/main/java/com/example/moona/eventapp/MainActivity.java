@@ -32,21 +32,18 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private String locationUrl = "https://api.hel.fi/linkedevents/v1/place/?format=json";
     private String keyWordUrl = "http://api.hel.fi/linkedevents/v0.1/keyword/?format=json";
+    private String noImageAvailable = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/No_image_available_600_x_200.svg/2000px-No_image_available_600_x_200.svg.png";
     private String searchUrl;
     private static String status = "";
     private Spinner keywordSpinner;
     private Spinner locationSpinner;
     private static String keyword = "";
     private static String location = "";
-
-    /* TODO:
-    - KORJAA LOCATION-HAKU
-    - FUNKTIO, JOKA TARKASTAA LÖYTYYKÖ JSONISTA MOISTA, JOS EI NIIN VIIVA
-    - PUUTTUVILLE KUVILLE PAREMPI SYSTEEMI
-      */
-
-
-
+    private String imageUrl;
+    private String photographer;
+    private String en_locationInfo;
+    private String en_url;
+    private TextView txtDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         lv = findViewById(R.id.lv);
+        txtDate = findViewById(R.id.txtDate);
 
         // HAETAAN SPINNERIIN HETI OHJELMAN ALKAESSA KEYWORDIT
         new MyTask().execute(keyWordUrl, "keywords");
@@ -61,11 +59,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void SearchClicked(View v)
     {
-        searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=location,keyword&location=" + location + "&keyword=" + keyword;
-
-        // HAKU HAKUTEKIJÖIDEN MUKAAN
-        // TODO: TÄHÄN TARKISTUS, ETTÄ AINAKIN JOTAKIN ON SYÖTETTY
-        new MyTask().execute(searchUrl, "search");
+        if (locationSpinner.getSelectedItem().toString().length() == 0) // TODO: EI TOIMI, KORJAA
+        {
+            searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=division,keyword&division=" + location + "&keyword=" + keyword;
+            new MyTask().execute(searchUrl, "search");
+        }
+        else
+        {
+            Toast.makeText(MainActivity.this, locationSpinner.getSelectedItem().toString(),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private class MyTask extends AsyncTask<String, Integer, JSONObject> {
@@ -148,33 +151,41 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < array.length(); i++)
                 {
-                    String imageUrl = "";
-                    String photographer = "";
-
                     try
                     {
-                        // PARSITAAN DATAA OCJEKTEIHIN, JOISTA HAJOITETAAN ENGLANNINKIELISET STRING-MUUTTUJAT
                         JSONObject data = null;
                         data = array.getJSONObject(i);
-                        JSONObject name = data.getJSONObject("name");
-                        JSONObject desc = data.getJSONObject("short_description");
-                        JSONObject fullDesc = data.getJSONObject("description");
-                        JSONObject locationInfo = data.getJSONObject("location_extra_info");
-                        JSONObject url = data.getJSONObject("info_url");
-                        String en_name = name.getString("en");
-                        String en_desc = desc.getString("en");
-                        String en_fullDesc = fullDesc.getString("en");
-                        String en_url = url.getString("en");
-                        String en_locationInfo = locationInfo.getString("en");
+                        String  en_name = data.getJSONObject("name").getString("en");
+                        String en_desc = data.getJSONObject("short_description").getString("en");
+                        String en_fullDesc = FormatText(data.getJSONObject("description").getString("en"));
                         String eventId = data.getString("id");
                         String date = data.getString("start_time");
                         JSONArray images = data.getJSONArray("images");
 
+                        // PITÄÄ TEHDÄ, KOSKA MUUTEN JÄÄ HAKUTULOKSET VÄHÄISIKSI
+                        try
+                        {
+                            en_locationInfo = "at " + data.getJSONObject("location_extra_info").getString("en");
+                        }
+                        catch (Exception e)
+                        {
+                            en_locationInfo = "";
+                        }
+
+                        try
+                        {
+                            en_url = data.getJSONObject("info_url").getString("en");
+                        }
+                        catch (Exception e)
+                        {
+                            en_url = "-";
+                        }
+
                         // JSONIN SISÄLLÄ TAULUKKO, JOTEN PITÄÄ PYÖRITTÄÄ SILMUKASSA
                         if (images != null)
                         {
-                            // TODO: KORJAA TÄMÄ VIRITYS
-                            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/No_image_available_600_x_200.svg/2000px-No_image_available_600_x_200.svg.png";
+                            // JOS KUVAA EI OLE, KORVATAAN EI KUVAA-KUVALLA
+                            imageUrl = noImageAvailable;
                             photographer = "-";
 
                             for (int j = 0; j < images.length(); j++)
@@ -183,16 +194,12 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (imageData != null)
                                 {
-
                                     imageUrl = imageData.getString("url");
                                     photographer = imageData.getString("photographer_name");
                                 }
-
-
                             }
                         }
-
-                        dataList.add(new Data(en_name, FormatDates(date) + ", " + en_locationInfo, en_desc, imageUrl, eventId, photographer, en_url, en_fullDesc));
+                        dataList.add(new Data(en_name, FormatDates(date) + " " + en_locationInfo, en_desc, imageUrl, eventId, photographer, en_url, en_fullDesc));
                     }
                     catch (JSONException e)
                     {
@@ -240,21 +247,17 @@ public class MainActivity extends AppCompatActivity {
             else if (status == "locations")
             {
                 ArrayList<Location> locations = new ArrayList<>();
-                locations.add(new Location("Choose location", ""));
+                locations.add(new Location(""));
 
                 for (int i = 0; i < array.length(); i++)
                 {
-                    String city = "";
                     String neighborhood = "";
-                    String location_name = "";
-                    String type = "";
 
                     try
                     {
                         JSONObject data = null;
                         data = array.getJSONObject(i);
                         JSONArray divisions = data.getJSONArray("divisions");
-                        String locationId = data.getString("id");
 
                         if (divisions != null)
                         {
@@ -264,31 +267,35 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (divisionData != null)
                                 {
-                                    type = divisionData.getString("type");
+                                    String type = divisionData.getString("type");
 
                                     if (type.contains("neighborhood"))
                                     {
-                                        //Toast.makeText(MainActivity.this, "toimii",
-                                        //        Toast.LENGTH_LONG).show();
+                                        // TÄMÄ VIRITYS, KOSKA JSONISSA ERI KOHDISSA TIETOJA
+                                        if (type.contains("neighborhood"))
+                                        {
+                                            JSONObject location = divisionData.getJSONObject("name");
+                                            neighborhood += location.getString("fi");
+                                        }
+                                        else if (type.contains("sub_district"))
+                                        {
+                                            JSONObject location = divisionData.getJSONObject("name");
+                                            neighborhood += location.getString("fi");
+                                        }
+                                        else
+                                        {
+                                            JSONObject location = divisionData.getJSONObject("name");
+                                            neighborhood += location.getString("fi");
+                                        }
 
-                                        JSONObject location = divisionData.getJSONObject("name");
-                                        neighborhood += location.getString("fi") + ", ";
+                                        if (!Contains(locations, neighborhood))
+                                        {
+                                            locations.add(new Location(neighborhood));
+                                        }
                                     }
-
-                                    if (type.contains("muni"))
-                                    {
-                                        JSONObject location = divisionData.getJSONObject("name");
-                                        city += location.getString("fi");
-                                    }
-
                                 }
                             }
                         }
-                        /*String locationId = data.getString("id");
-                        JSONObject location = data.getJSONObject("name");
-                        String en_location = location.getString("en");*/
-
-                        locations.add(new Location(neighborhood + city, locationId));
                     }
                     catch (JSONException e)
                     {
@@ -302,19 +309,20 @@ public class MainActivity extends AppCompatActivity {
                 locationSpinner.setAdapter(locationAdapter);
                 locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                        location = locationAdapter.getItem(pos).getmLocationId();
+                        location = locationAdapter.getItem(pos).getmLocation();
                         searchUrl = "";
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
-                        // TÄMÄ PITÄÄ OLLA, MUUTEN KAATUU
+                        location = "";
+                        searchUrl = "";
                     }
                 });
             }
             else if (status == "keywords")
             {
                 ArrayList<Keyword> keywords = new ArrayList<>();
-                keywords.add(new Keyword("Choose keyword", ""));
+                keywords.add(new Keyword("", ""));
 
                 for (int i = 0; i < array.length(); i++)
                 {
@@ -323,8 +331,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject data = null;
                         data = array.getJSONObject(i);
                         String keywordId = data.getString("id");
-                        JSONObject keyword = data.getJSONObject("name");
-                        String en_keyword = keyword.getString("en");
+                        String en_keyword = data.getJSONObject("name").getString("en");
 
                         keywords.add(new Keyword(en_keyword, keywordId));
                     }
@@ -344,7 +351,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
-                        // TÄMÄ PITÄÄ OLLA, MUUTEN KAATUU
+                        keyword = "";
+                        searchUrl = "";
                     }
                 });
 
@@ -358,6 +366,25 @@ public class MainActivity extends AppCompatActivity {
     public String FormatDates(String date)
     {
         return date.substring(0, 10);
+    }
+
+    // FUNKTIO, JOKA TARKISTAA ONKO LISTASSA JO JOKU
+    public boolean Contains(ArrayList<Location> list, String name)
+    {
+        for (Location item : list)
+        {
+            if (item.getmLocation().equals(name))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String FormatText(String desc)
+    {
+        String ret = desc.replace("<p>", "");
+        return ret.replace("</p>", "");
     }
 }
 

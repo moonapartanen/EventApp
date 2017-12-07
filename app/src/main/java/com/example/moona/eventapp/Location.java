@@ -7,20 +7,15 @@ package com.example.moona.eventapp;
 public class Location {
 
     private String mLocation;
-    private String mLocationId;
+    //private String mLocationId;
 
-    public Location(String mName, String mLocationId)
+    public Location(String mName)
     {
         this.mLocation = mName;
-        this.mLocationId = mLocationId;
     }
 
     public String getmLocation() {
         return mLocation;
-    }
-
-    public String getmLocationId() {
-        return mLocationId;
     }
 
 }
