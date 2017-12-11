@@ -4,5 +4,5 @@
     <string name="keyword">KEYWORD</string>
     <string name="location">LOCATION</string>
     <string name="date">DATE</string>
-    <string name="dateformat">dd-mm-yyyy</string>
+    <string name="dateformat">yyyy-mm-dd</string>
 </resources>

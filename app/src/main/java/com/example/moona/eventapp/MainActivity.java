@@ -2,13 +2,16 @@ package com.example.moona.eventapp;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +25,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,31 +50,46 @@ public class MainActivity extends AppCompatActivity {
     private String en_locationInfo;
     private String en_url;
     private TextView txtDate;
+    private boolean locationExists = false;
+    private boolean keywordExists = false;
+    private String date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
+        setTheme(R.style.AppTheme);
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         lv = findViewById(R.id.lv);
         txtDate = findViewById(R.id.txtDate);
 
+
         // HAETAAN SPINNERIIN HETI OHJELMAN ALKAESSA KEYWORDIT
         new MyTask().execute(keyWordUrl, "keywords");
+
+
     }
 
     public void SearchClicked(View v)
     {
-        if (locationSpinner.getSelectedItem().toString().length() == 0) // TODO: EI TOIMI, KORJAA
+        if (locationExists || keywordExists || txtDate.getText().length() > 0)
         {
-            searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=division,keyword&division=" + location + "&keyword=" + keyword;
+            date = txtDate.getText().toString();
+            searchUrl = "https://api.hel.fi/linkedevents/v1/event/?format=json&include=division,keywords,start&division=" + location + "&keyword=" + keyword + "&start=" + date;
             new MyTask().execute(searchUrl, "search");
         }
         else
         {
-            Toast.makeText(MainActivity.this, locationSpinner.getSelectedItem().toString(),
+            Toast.makeText(MainActivity.this, "Fill at least one field, please!",
                     Toast.LENGTH_LONG).show();
         }
+
+
     }
 
     private class MyTask extends AsyncTask<String, Integer, JSONObject> {
@@ -215,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, final int index, long id) {
 
-                        final int selectedPosition = index;
+                        //final int selectedPosition = index;
 
                         LayoutInflater linf = LayoutInflater.from(MainActivity.this);
                         final View inflator = linf.inflate(R.layout.dialog, null);
@@ -311,12 +332,22 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                         location = locationAdapter.getItem(pos).getmLocation();
                         searchUrl = "";
+
+                        if (pos != 0)
+                        {
+                            locationExists = true;
+                        }
+                        else
+                        {
+                            locationExists = false;
+                        }
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
                         location = "";
                         searchUrl = "";
                     }
+
                 });
             }
             else if (status == "keywords")
@@ -348,6 +379,15 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                         keyword = keywordAdapter.getItem(pos).getmKeywordId();
                         searchUrl = "";
+
+                        if (pos != 0)
+                        {
+                            keywordExists = true;
+                        }
+                        else
+                        {
+                            keywordExists = false;
+                        }
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) {
