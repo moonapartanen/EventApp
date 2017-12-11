@@ -15,12 +15,13 @@ public class ImplementedFeatures extends AppCompatActivity {
 
     private TextView txtFeatures;
     private Button btnClose;
-    private String features = "- ID 1\n"
-                            + "- ID 2\n"
-                            + "- ID 3\n"
-                            + "- ID 4\n"
-                            + "- ID 6\n"
-                            + "- ID 7\n";
+    private String features = "- ID 1 done\n"
+                            + "- ID 2 done\n"
+                            + "- ID 3 done\n"
+                            + "- ID 4 done\n"
+                            + "- ID 5 not done\n"
+                            + "- ID 6 done\n"
+                            + "- ID 7 done\n";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
