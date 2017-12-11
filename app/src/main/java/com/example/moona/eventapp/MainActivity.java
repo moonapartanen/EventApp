@@ -7,7 +7,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -15,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,24 +59,48 @@ public class MainActivity extends AppCompatActivity {
     private String date;
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
-        setTheme(R.style.AppTheme);
-
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-
-        lv = findViewById(R.id.lv);
-        txtDate = findViewById(R.id.txtDate);
-
 
         // HAETAAN SPINNERIIN HETI OHJELMAN ALKAESSA KEYWORDIT
         new MyTask().execute(keyWordUrl, "keywords");
 
+        // PAKOTETAAN SPLASH SCREEN PYSYMÄÄN KOLME SEKUNTIA
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(3));
+        setTheme(R.style.AppTheme);
 
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        lv = findViewById(R.id.lv);
+        txtDate = findViewById(R.id.txtDate);
+
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_quit:
+                    MainActivity.this.finish();
+                    System.exit(0);
+                return true;
+            case R.id.action_showlist:
+                Intent intent = new Intent(getApplicationContext(), ImplementedFeatures.class);
+                startActivity(intent);
+                return true;
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void SearchClicked(View v)
